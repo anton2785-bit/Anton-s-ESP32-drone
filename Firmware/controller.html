@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Drone Controller</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; touch-action: none; }
+
+  body {
+    background: #0a0a0f;
+    color: #e0e0e0;
+    font-family: 'Courier New', monospace;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    background: #111118;
+    border-bottom: 1px solid #2a2a3a;
+    font-size: 12px;
+  }
+
+  .logo { color: #00d4ff; font-size: 14px; letter-spacing: 4px; font-weight: bold; }
+
+  .status-row { display: flex; gap: 16px; }
+  .stat { display: flex; flex-direction: column; align-items: center; }
+  .stat-val { color: #00d4ff; font-size: 13px; }
+  .stat-lbl { color: #555; font-size: 9px; letter-spacing: 1px; }
+
+  #conn-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: #ff3333; align-self: center;
+    box-shadow: 0 0 6px #ff3333;
+    transition: all 0.3s;
+  }
+  #conn-dot.on { background: #00ff88; box-shadow: 0 0 8px #00ff88; }
+
+  .controls {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .stick-area {
+    background: #111118;
+    border: 1px solid #2a2a3a;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    position: relative;
+  }
+
+  .stick-label { font-size: 9px; letter-spacing: 2px; color: #444; text-transform: uppercase; }
+
+  .stick-zone {
+    width: 140px; height: 140px;
+    border-radius: 50%;
+    border: 1px solid #2a2a3a;
+    background: radial-gradient(circle, #1a1a2e 0%, #0d0d1a 100%);
+    position: relative;
+    cursor: crosshair;
+  }
+
+  .crosshair-h, .crosshair-v {
+    position: absolute;
+    background: #2a2a3a;
+  }
+  .crosshair-h { width: 100%; height: 1px; top: 50%; }
+  .crosshair-v { width: 1px; height: 100%; left: 50%; }
+
+  .stick-thumb {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #00d4ff, #0055aa);
+    box-shadow: 0 0 12px rgba(0, 212, 255, 0.5);
+    position: absolute;
+    transform: translate(-50%, -50%);
+    left: 50%; top: 50%;
+    transition: box-shadow 0.1s;
+    pointer-events: none;
+  }
+  .stick-thumb.active { box-shadow: 0 0 20px rgba(0, 212, 255, 0.9); }
+
+  .throttle-area {
+    background: #111118;
+    border: 1px solid #2a2a3a;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .throttle-track {
+    width: 40px; height: 140px;
+    background: #0d0d1a;
+    border: 1px solid #2a2a3a;
+    border-radius: 20px;
+    position: relative;
+    cursor: ns-resize;
+  }
+
+  .throttle-fill {
+    position: absolute;
+    bottom: 4px; left: 4px; right: 4px;
+    border-radius: 16px;
+    background: linear-gradient(to top, #00ff88, #00d4ff);
+    box-shadow: 0 0 10px rgba(0, 212, 255, 0.4);
+    transition: height 0.05s;
+  }
+
+  .throttle-val { font-size: 18px; color: #00d4ff; }
+
+  footer {
+    padding: 8px 20px;
+    background: #111118;
+    border-top: 1px solid #2a2a3a;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  #connect-btn {
+    background: none;
+    border: 1px solid #00d4ff;
+    color: #00d4ff;
+    padding: 6px 14px;
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  #connect-btn:hover { background: #00d4ff; color: #000; }
+
+  #ip-input {
+    background: #0d0d1a;
+    border: 1px solid #2a2a3a;
+    color: #e0e0e0;
+    padding: 6px 10px;
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    border-radius: 4px;
+    width: 130px;
+  }
+
+  .bat-bar {
+    width: 60px; height: 8px;
+    background: #1a1a2e;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .bat-fill {
+    height: 100%;
+    background: linear-gradient(to right, #ff3333, #ffaa00, #00ff88);
+    border-radius: 4px;
+    transition: width 0.5s;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">ESP-FLY</div>
+  <div class="status-row">
+    <div class="stat">
+      <span class="stat-val" id="pitch-disp">0.0°</span>
+      <span class="stat-lbl">PITCH</span>
+    </div>
+    <div class="stat">
+      <span class="stat-val" id="roll-disp">0.0°</span>
+      <span class="stat-lbl">ROLL</span>
+    </div>
+    <div class="stat">
+      <span class="stat-val" id="bat-disp">--V</span>
+      <span class="stat-lbl">BAT</span>
+      <div class="bat-bar"><div class="bat-fill" id="bat-fill" style="width:0%"></div></div>
+    </div>
+  </div>
+  <div id="conn-dot"></div>
+</header>
+
+<div class="controls">
+  <!-- Left: Throttle + Yaw -->
+  <div class="stick-area">
+    <span class="stick-label">Throttle / Yaw</span>
+    <div style="display:flex;gap:12px;align-items:center">
+      <div class="throttle-track" id="thr-track">
+        <div class="throttle-fill" id="thr-fill" style="height:0%"></div>
+      </div>
+      <div class="stick-zone" id="yaw-zone">
+        <div class="crosshair-h"></div>
+        <div class="crosshair-v"></div>
+        <div class="stick-thumb" id="yaw-thumb"></div>
+      </div>
+    </div>
+    <span class="stat-val" id="thr-val">THR: 0</span>
+  </div>
+
+  <!-- Right: Pitch + Roll -->
+  <div class="stick-area">
+    <span class="stick-label">Pitch / Roll</span>
+    <div class="stick-zone" id="pr-zone">
+      <div class="crosshair-h"></div>
+      <div class="crosshair-v"></div>
+      <div class="stick-thumb" id="pr-thumb"></div>
+    </div>
+    <span class="stat-val" id="pr-val">P:0 R:0</span>
+  </div>
+</div>
+
+<footer>
+  <input id="ip-input" type="text" value="192.168.4.1" placeholder="Drone IP">
+  <button id="connect-btn" onclick="toggleConnect()">CONNECT</button>
+</footer>
+
+<script>
+  const DRONE_PORT = 4210;
+  let connected = false;
+  let ws = null;
+
+  let throttleVal = 0;
+  let yawVal = 0;
+  let pitchVal = 0;
+  let rollVal = 0;
+
+  // ── WebSocket (phone browser can't do raw UDP, use WS proxy or serve from ESP) ──
+  // For presentation: simulate the UDP commands via WebSocket
+  // On ESP32 you'd add a WebSocket server or use a UDP-to-WS bridge
+
+  function toggleConnect() {
+    const ip = document.getElementById('ip-input').value;
+    if (connected) {
+      if (ws) ws.close();
+      connected = false;
+      document.getElementById('conn-dot').classList.remove('on');
+      document.getElementById('connect-btn').textContent = 'CONNECT';
+    } else {
+      ws = new WebSocket(`ws://${ip}:81`);
+      ws.onopen = () => {
+        connected = true;
+        document.getElementById('conn-dot').classList.add('on');
+        document.getElementById('connect-btn').textContent = 'DISCONNECT';
+      };
+      ws.onclose = () => {
+        connected = false;
+        document.getElementById('conn-dot').classList.remove('on');
+        document.getElementById('connect-btn').textContent = 'CONNECT';
+      };
+      ws.onmessage = (e) => parseTelemetry(e.data);
+    }
+  }
+
+  function parseTelemetry(data) {
+    // format: "P:1.2,R:-0.5,B:3.85"
+    const parts = data.split(',');
+    parts.forEach(p => {
+      const [k, v] = p.split(':');
+      if (k === 'P') document.getElementById('pitch-disp').textContent = parseFloat(v).toFixed(1) + '°';
+      if (k === 'R') document.getElementById('roll-disp').textContent  = parseFloat(v).toFixed(1) + '°';
+      if (k === 'B') {
+        const bv = parseFloat(v);
+        document.getElementById('bat-disp').textContent = bv.toFixed(2) + 'V';
+        const pct = Math.max(0, Math.min(100, (bv - 3.0) / 1.2 * 100));
+        document.getElementById('bat-fill').style.width = pct + '%';
+      }
+    });
+  }
+
+  function sendCommand() {
+    if (!connected || !ws || ws.readyState !== WebSocket.OPEN) return;
+    const cmd = `T:${throttleVal},P:${(pitchVal).toFixed(2)},R:${(rollVal).toFixed(2)},Y:${(yawVal).toFixed(2)}`;
+    ws.send(cmd);
+  }
+
+  setInterval(sendCommand, 50);
+
+  // ── Throttle slider ──
+  const thrTrack = document.getElementById('thr-track');
+  const thrFill  = document.getElementById('thr-fill');
+  const thrVal   = document.getElementById('thr-val');
+  let thrActive  = false;
+
+  function updateThrottle(y) {
+    const rect = thrTrack.getBoundingClientRect();
+    let pct = 1 - (y - rect.top) / rect.height;
+    pct = Math.max(0, Math.min(1, pct));
+    throttleVal = Math.round(pct * 255);
+    thrFill.style.height = (pct * 100) + '%';
+    thrVal.textContent = 'THR: ' + throttleVal;
+  }
+
+  thrTrack.addEventListener('touchstart', e => { thrActive = true; updateThrottle(e.touches[0].clientY); });
+  thrTrack.addEventListener('touchmove',  e => { if (thrActive) updateThrottle(e.touches[0].clientY); });
+  thrTrack.addEventListener('touchend',   () => { thrActive = false; });
+  thrTrack.addEventListener('mousedown',  e => { thrActive = true; updateThrottle(e.clientY); });
+  document.addEventListener('mousemove',  e => { if (thrActive) updateThrottle(e.clientY); });
+  document.addEventListener('mouseup',    () => { thrActive = false; });
+
+  // ── Generic joystick ──
+  function makeStick(zoneId, thumbId, onMove, returnCenter = true) {
+    const zone  = document.getElementById(zoneId);
+    const thumb = document.getElementById(thumbId);
+    let active = false;
+
+    function move(cx, cy) {
+      const rect = zone.getBoundingClientRect();
+      const r    = rect.width / 2;
+      let dx = cx - rect.left - r;
+      let dy = cy - rect.top  - r;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      if (dist > r) { dx *= r/dist; dy *= r/dist; }
+      thumb.style.left = (r + dx) + 'px';
+      thumb.style.top  = (r + dy) + 'px';
+      thumb.classList.add('active');
+      onMove(dx / r, dy / r);
+    }
+
+    function reset() {
+      if (returnCenter) {
+        thumb.style.left = '50%';
+        thumb.style.top  = '50%';
+        thumb.classList.remove('active');
+        onMove(0, 0);
+      }
+      active = false;
+    }
+
+    zone.addEventListener('touchstart', e => { active = true; move(e.touches[0].clientX, e.touches[0].clientY); });
+    zone.addEventListener('touchmove',  e => { if (active) move(e.touches[0].clientX, e.touches[0].clientY); });
+    zone.addEventListener('touchend',   () => reset());
+    zone.addEventListener('mousedown',  e => { active = true; move(e.clientX, e.clientY); });
+    document.addEventListener('mousemove', e => { if (active) move(e.clientX, e.clientY); });
+    document.addEventListener('mouseup',   () => { if (active) reset(); });
+  }
+
+  makeStick('yaw-zone', 'yaw-thumb', (x, y) => {
+    yawVal = (x * 30).toFixed(2);
+  });
+
+  makeStick('pr-zone', 'pr-thumb', (x, y) => {
+    rollVal  = (x * 15).toFixed(2);
+    pitchVal = (-y * 15).toFixed(2);
+    document.getElementById('pr-val').textContent = `P:${pitchVal} R:${rollVal}`;
+  });
+</script>
+</body>
+</html>

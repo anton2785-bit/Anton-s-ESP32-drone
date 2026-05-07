@@ -1,0 +1,13 @@
+Name,Purpose,Quantity,Total Cost (USD),Link,Distributor
+"Diodes","Stop current in one direction",1,2.20,"https://www.aliexpress.com/item/1005007160563285.html?pdp_ext_f=%7B%22sku_id%22%3A%2212000039653324544%22%7D&sourceType=1&spm=a2g0o.wish-manage-detail.0.0","Aliexpress"
+"Pack of resistors ","Resists",1,4.10,"https://www.aliexpress.com/item/1005010519485476.html?pdp_ext_f=%7B%22sku_id%22%3A%2212000052676754449%22%7D&sourceType=1&spm=a2g0o.wish-manage-detail.0.0","Aliexpress "
+"Transistors","Controls big current with small ones",1,2.50,"https://www.aliexpress.com/item/1005011574380229.html?pdp_ext_f=%7B%22sku_id%22%3A%2212000055960036705%22%7D&sourceType=1&spm=a2g0o.wish-manage-detail.0.0","Aliexpress"
+"MPU-6050 ","Gyro",1,7.20,"https://www.aliexpress.com/item/1005007986741850.html?pdp_ext_f=%7B%22sku_id%22%3A%2212000043166583348%22%7D&sourceType=1&spm=a2g0o.wish-manage-detail.0.0","Aliexpress"
+"Propellers","Gives lift",1,5.90,"https://www.aliexpress.com/item/1005005351811890.html?pdp_ext_f=%7B%22sku_id%22%3A%2212000032714337732%22%7D&sourceType=1&spm=a2g0o.wish-manage-detail.0.0","Aliexpress"
+"Battery","gives charge",1,6.50,"https://www.aliexpress.com/item/1005006762177546.html?pdp_ext_f=%7B%22sku_id%22%3A%2212000038217592894%22%7D&sourceType=1&spm=a2g0o.wish-manage-detail.0.0","Aliexpress"
+"Connector","Connects the battery",1,3.20,"https://www.aliexpress.com/item/1005003431613901.html?pdp_ext_f=%7B%22sku_id%22%3A%2212000028261810379%22%7D&sourceType=1&spm=a2g0o.wish-manage-detail.0.0","Aliexpress"
+"LED","lights up",1,5.20,"https://www.aliexpress.com/item/1005010338676055.html?pdp_ext_f=%7B%22sku_id%22%3A%2212000052257941480%22%7D&sourceType=1&spm=a2g0o.wish-manage-detail.0.0","Aleixpress"
+"Capacitors","Store charge",1,1.90,"https://www.aliexpress.com/item/1005007470747384.html?pdp_ext_f=%7B%22sku_id%22%3A%2212000040888645899%22%7D&sourceType=1&spm=a2g0o.wish-manage-detail.0.0","Aliexpress"
+"Motors","Spin",1,5.77,"https://www.aliexpress.com/item/1005006105092170.html?pdp_ext_f=%7B%22sku_id%22%3A%2212000035766688570%22%7D&sourceType=1&spm=a2g0o.wish-manage-detail.0.0","Aliexpress"
+"PCB","Mounting things on it",1,4.30,"","JLCPCB"
+"Seeed Studio XIAO ESP32-S3 Sense","Camera and controller ",1,25.00,"https://www.seeedstudio.com/XIAO-ESP32S3-Sense-p-5639.html","SEEED studio"
